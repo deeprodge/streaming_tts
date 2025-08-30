@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time TTS WebSocket Service</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>Real-Time TTS Service</h1>
+            <p>Streaming Text-to-Speech with Live Caption Highlighting</p>
+            <div class="connection-status">
+                Status: <span id="connectionStatus" class="status disconnected">Disconnected</span>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <div class="main-content">
+            <!-- Left Column: Live Captions -->
+
+
+            <!-- Right Column: Text Input & Controls -->
+            <div class="input-section">
+                <h2>Text Input</h2>
+                <textarea 
+                    id="textInput" 
+                    placeholder="Type your text here..."
+                    rows="8"
+                ></textarea>
+
+                <!-- Control Sections -->
+                <div class="controls">
+                    <!-- Standard TTS Section -->
+                    <div class="control-section tts-section">
+                        <h3>Standard TTS Mode</h3>
+                        <p>Convert complete text to speech with streaming</p>
+                        <div class="control-buttons">
+                            <button id="convertButton" class="btn btn-primary">Convert to Speech</button>
+                            <button id="stopAllButton" class="btn btn-danger stop-all-btn">Stop All & Clear</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Chunking Control Section -->
+                    <div class="control-section chunking-section">
+                        <h3>Streaming Settings</h3>
+                        <div class="chunking-control">
+                            <label for="chunkSizeInput">Max words per chunk:</label>
+                            <input type="number" id="chunkSizeInput" min="5" max="50" value="20">
+                            <span class="chunking-info">Higher values = longer chunks, more natural speech, but potentialy higher latency. </span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Volume Control -->
+                <div class="volume-section">
+                    <h3>Audio Settings</h3>
+                    <div class="volume-control">
+                        <label for="volumeSlider">Volume:</label>
+                        <input type="range" id="volumeSlider" min="0" max="100" value="70">
+                        <span id="volumeValue">70%</span>
+                    </div>
+                    <div class="audio-info">
+                        <div class="info-item">
+                            <span class="label">Queue</span>
+                            <span id="audioQueueCount">0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Latency</span>
+                            <span id="latencyDisplay">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="caption-section">
+                <h2>Live Captions with Word Highlighting</h2>
+                <div id="captionDisplay" class="caption-display">
+                    <div class="placeholder">Captions will appear here with synchronized word highlighting...</div>
+                </div>
+                
+                
+                <!-- Progress Bar -->
+                <div id="progressContainer" class="progress-container" style="display: none;">
+                    <div class="progress-header">
+                        <span>Progress:</span>
+                        <div class="progress-info">
+                            <span id="progressPercent">0%</span>
+                            <span id="progressTime">0s / 0s</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="audioProgress" class="progress-bar"></div>
+                    </div>
+                </div>
+                
+                <!-- Live Typing Section -->
+                <div class="control-section live-section">
+                    <h3>Live Typing Mode</h3>
+                    <p>TTS triggers automatically on sentence completion (., !, ?)</p>
+                    <div class="control-buttons">
+                        <button id="enableLiveButton" class="btn btn-primary">Enable Live Typing</button>
+                        <button id="flushButton" class="btn btn-secondary">Flush Now</button>
+                    </div>
+                </div>
+
+                <!-- Examples Section -->
+                <div class="examples-section">
+                    <h3>Quick Examples</h3>
+                    <div class="examples-grid">
+                        <!-- Mathematical Notation -->
+                        <div class="example-category">
+                            <h4>Mathematical Notation</h4>
+                            <div class="example-buttons">
+                                <button class="example-btn" data-text="The fundamental equation 3 × 7 = 21 demonstrates basic multiplication principles. When we multiply three by seven, we are essentially adding three seven times, which gives us twenty-one as the final result.">Extended Math: 3 × 7 = 21</button>
+                                <button class="example-btn" data-text="Einstein's revolutionary equation E = mc² shows that energy equals mass times the speed of light squared. This fundamental formula in physics demonstrates the relationship between mass and energy, where c represents the speed of light at approximately 299,792,458 meters per second.">Einstein's E = mc² Theory</button>
+                                <button class="example-btn" data-text="In advanced mathematics, we calculate x² + √16 = x² + 4 for algebraic solutions. The square root of sixteen equals four, so this expression simplifies to x squared plus four, which is a fundamental quadratic expression used in calculus.">Powers & Roots: x² + √16</button>
+                                <button class="example-btn" data-text="Mathematical fractions like 3/4 equals 0.75 in decimal form, while the division 2÷8 equals 0.25. These fractional representations are essential in engineering, science, and everyday calculations for precise measurements.">Fractions & Decimals</button>
+                            </div>
+                        </div>
+
+                        <!-- Greek Letters & Symbols -->
+                        <div class="example-category">
+                            <h4>Greek Letters & Symbols</h4>
+                            <div class="example-buttons">
+                                <button class="example-btn" data-text="The mathematical constant π (pi) is approximately 3.14159 and represents the ratio of a circle's circumference to its diameter. In algebra, α (alpha) and β (beta) are commonly used variables for representing unknown values in equations and formulas.">π, α, β in Mathematics</button>
+                                <button class="example-btn" data-text="In physics and engineering, λ (lambda) represents wavelength in electromagnetic radiation, μ (mu) denotes the micro prefix meaning one millionth, and Ω (omega) symbolizes electrical resistance measured in ohms. These Greek letters are fundamental to scientific notation.">Physics: λ, μ, Ω</button>
+                                <button class="example-btn" data-text="The complete Greek alphabet includes α (alpha), β (beta), γ (gamma), δ (delta), θ (theta), and λ (lambda), each with specific meanings in mathematics and science. These symbols form the foundation of mathematical notation across multiple disciplines.">Greek Alphabet Overview</button>
+                                <button class="example-btn" data-text="Set theory mathematics uses A ∪ B to represent the union of sets A and B, while A ∩ B represents their intersection. The symbol ∀ means 'for all' in logical statements, forming the basis of mathematical proofs and logical reasoning.">Set Theory: ∪, ∩, ∀</button>
+                            </div>
+                        </div>
+
+                        <!-- Scientific & Physics -->
+                        <div class="example-category">
+                            <h4>Scientific & Physics</h4>
+                            <div class="example-buttons">
+                                <button class="example-btn" data-text="The speed of light in vacuum is exactly 3.0 × 10⁸ meters per second, approximately 300,000 kilometers per second. This fundamental constant in physics is crucial for understanding relativity, electromagnetic radiation, and the behavior of photons in space.">Speed of Light: 3.0×10⁸</button>
+                                <button class="example-btn" data-text="Mathematical inequalities such as x ≤ 10 mean that x is less than or equal to ten. These inequality symbols are essential in calculus, optimization problems, and constraint mathematics used in engineering and computer science applications.">Mathematical Inequalities</button>
+                                <button class="example-btn" data-text="Calculus notation includes ∫f(x)dx representing the integration of function f with respect to x, while ∑xi represents the summation of all xi values. These symbols are fundamental to advanced mathematics, physics, and engineering calculations.">Calculus: Integration & Summation</button>
+                                <button class="example-btn" data-text="Temperature conversion formulas show that 0°C equals 32°F at the freezing point of water, while absolute zero occurs at negative 273°C or negative 459°F. These temperature scales are crucial in physics, chemistry, and engineering applications.">Temperature Scales</button>
+                            </div>
+                        </div>
+
+                        <!-- Normal English -->
+                        <div class="example-category">
+                            <h4>Normal English</h4>
+                            <div class="example-buttons">
+                                <button class="example-btn" data-text="Hello, this is a comprehensive real-time text-to-speech demonstration featuring live word highlighting technology. The system processes text dynamically and provides synchronized visual feedback as each word is spoken, creating an interactive learning experience.">Advanced Demo Text</button>
+                                <button class="example-btn" data-text="Dr. Smith and Ms. Johnson will meet at 3:30 p.m. to discuss the important research project. The meeting will include Prof. Davis and other Ph.D. candidates to review the latest findings and plan future experiments in the laboratory.">Abbreviations: Dr., Ms., Ph.D.</button>
+                                <button class="example-btn" data-text="The technology company, Inc. was founded in New York, N.Y. in the U.S.A. during the early 2000s. The organization has since expanded globally, establishing offices in California, Texas, and several international locations across Europe.">Geographic & Corporate Terms</button>
+                                <button class="example-btn" data-text="Please contact Mr. Brown Jr. or Prof. Davis about the comprehensive research proposal. The document includes detailed methodologies, budget projections, and timeline estimates for the three-year scientific study beginning next semester.">Professional Titles & Contacts</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="examples-footer">
+                        <p><strong>Note:</strong> Examples demonstrate mathematical notation processing, abbreviation handling, and caption synchronization. Click any example to hear it spoken with live highlighting!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Section -->
+        <div class="stats-section">
+            <h3>Session Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Characters</span>
+                    <span id="charCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Audio Chunks</span>
+                    <span id="chunkCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Avg Latency</span>
+                    <span id="avgLatency">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Session Time</span>
+                    <span id="sessionDuration">00:00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debug Log Section -->
+        <div class="log-section">
+            <h3>Debug Information</h3>
+            <div id="debugLog" class="debug-log">
+                <p>Debug information will appear here...</p>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- JavaScript -->
+    <script src="/static/script.js"></script>
+</body>
+</html>
