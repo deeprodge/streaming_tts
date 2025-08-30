@@ -12,7 +12,13 @@ A low-latency streaming Text-to-Speech service with real-time caption highlighti
 
 ## Quick Start
 
-1. **Install Dependencies**:
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/deeprodge/streaming_tts
+   cd streaming_tts
+   ```
+
+2. **Install Dependencies**:
    ```bash
    conda create -n streaming_tts python=3.10
    conda activate streaming_tts
