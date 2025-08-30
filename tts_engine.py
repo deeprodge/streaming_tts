@@ -24,265 +24,6 @@ from kokoro import KPipeline
 logger = logging.getLogger(__name__)
 
 
-class MathNotationProcessor:
-    """Handles mathematical notation conversion to spoken text"""
-    
-    # Mathematical symbols mapping
-    SYMBOL_MAP = {
-        # Basic operators
-        '+': ' plus ',
-        '-': ' minus ',
-        '×': ' times ',
-        '∗': ' times ',
-        '*': ' times ',
-        '÷': ' divided by ',
-        '/': ' divided by ',
-        '=': ' equals ',
-        '≠': ' not equal to ',
-        '≈': ' approximately equals ',
-        '≡': ' identical to ',
-        
-        # Comparison operators
-        '<': ' less than ',
-        '>': ' greater than ',
-        '≤': ' less than or equal to ',
-        '≥': ' greater than or equal to ',
-        '<<': ' much less than ',
-        '>>': ' much greater than ',
-        
-        # Powers and roots
-        '²': ' squared',
-        '³': ' cubed',
-        '⁴': ' to the fourth power',
-        '⁵': ' to the fifth power',
-        '⁶': ' to the sixth power',
-        '⁷': ' to the seventh power',
-        '⁸': ' to the eighth power',
-        '⁹': ' to the ninth power',
-        '√': ' square root of ',
-        '∛': ' cube root of ',
-        '∜': ' fourth root of ',
-        
-        # Greek letters
-        'α': ' alpha ',
-        'β': ' beta ',
-        'γ': ' gamma ',
-        'δ': ' delta ',
-        'ε': ' epsilon ',
-        'ζ': ' zeta ',
-        'η': ' eta ',
-        'θ': ' theta ',
-        'ι': ' iota ',
-        'κ': ' kappa ',
-        'λ': ' lambda ',
-        'μ': ' mu ',
-        'ν': ' nu ',
-        'ξ': ' xi ',
-        'ο': ' omicron ',
-        'π': ' pi ',
-        'ρ': ' rho ',
-        'σ': ' sigma ',
-        'τ': ' tau ',
-        'υ': ' upsilon ',
-        'φ': ' phi ',
-        'χ': ' chi ',
-        'ψ': ' psi ',
-        'ω': ' omega ',
-        
-        # Capital Greek letters
-        'Α': ' capital alpha ',
-        'Β': ' capital beta ',
-        'Γ': ' capital gamma ',
-        'Δ': ' capital delta ',
-        'Ε': ' capital epsilon ',
-        'Ζ': ' capital zeta ',
-        'Η': ' capital eta ',
-        'Θ': ' capital theta ',
-        'Ι': ' capital iota ',
-        'Κ': ' capital kappa ',
-        'Λ': ' capital lambda ',
-        'Μ': ' capital mu ',
-        'Ν': ' capital nu ',
-        'Ξ': ' capital xi ',
-        'Ο': ' capital omicron ',
-        'Π': ' capital pi ',
-        'Ρ': ' capital rho ',
-        'Σ': ' capital sigma ',
-        'Τ': ' capital tau ',
-        'Υ': ' capital upsilon ',
-        'Φ': ' capital phi ',
-        'Χ': ' capital chi ',
-        'Ψ': ' capital psi ',
-        'Ω': ' capital omega ',
-        
-        # Special constants
-        '∞': ' infinity ',
-        'ℯ': ' e ',
-        'ℎ': ' h ',
-        'ℏ': ' h bar ',
-        'ℵ': ' aleph ',
-        
-        # Set theory and logic
-        '∈': ' is in ',
-        '∉': ' is not in ',
-        '⊂': ' is a subset of ',
-        '⊃': ' is a superset of ',
-        '⊆': ' is a subset of or equal to ',
-        '⊇': ' is a superset of or equal to ',
-        '∪': ' union ',
-        '∩': ' intersection ',
-        '∅': ' empty set ',
-        '∀': ' for all ',
-        '∃': ' there exists ',
-        '∄': ' there does not exist ',
-        '¬': ' not ',
-        '∧': ' and ',
-        '∨': ' or ',
-        '⊕': ' exclusive or ',
-        '→': ' implies ',
-        '↔': ' if and only if ',
-        
-        # Calculus and analysis
-        '∫': ' integral ',
-        '∬': ' double integral ',
-        '∭': ' triple integral ',
-        '∮': ' contour integral ',
-        '∂': ' partial derivative ',
-        '∇': ' nabla ',
-        '∆': ' delta ',
-        '∑': ' sum ',
-        '∏': ' product ',
-        '∐': ' coproduct ',
-        'lim': ' limit ',
-        
-        # Arrows
-        '←': ' left arrow ',
-        '→': ' right arrow ',
-        '↑': ' up arrow ',
-        '↓': ' down arrow ',
-        '↔': ' left right arrow ',
-        '↕': ' up down arrow ',
-        '⇐': ' left double arrow ',
-        '⇒': ' right double arrow ',
-        '⇑': ' up double arrow ',
-        '⇓': ' down double arrow ',
-        '⇔': ' left right double arrow ',
-        
-        # Miscellaneous
-        '°': ' degrees ',
-        '′': ' prime ',
-        '″': ' double prime ',
-        '‴': ' triple prime ',
-        '∝': ' proportional to ',
-        '∟': ' right angle ',
-        '∠': ' angle ',
-        '∥': ' parallel to ',
-        '⊥': ' perpendicular to ',
-        '±': ' plus or minus ',
-        '∓': ' minus or plus ',
-        '∴': ' therefore ',
-        '∵': ' because ',
-        '∷': ' as ',
-        '∶': ' ratio ',
-        '%': ' percent ',
-        '‰': ' permille ',
-    }
-    
-    @classmethod
-    def process_mathematical_text(cls, text: str) -> str:
-        """
-        Convert mathematical notation to spoken text
-        
-        Args:
-            text: Input text with mathematical symbols
-            
-        Returns:
-            Text with mathematical symbols converted to spoken form
-        """
-        processed_text = text
-        
-        # Handle fractions (basic pattern: number/number)
-        processed_text = re.sub(r'(\d+)/(\d+)', r'\1 over \2', processed_text)
-        
-        # Handle superscripts with ^ notation (x^2, x^n, etc.)
-        processed_text = re.sub(r'([a-zA-Z0-9]+)\^([a-zA-Z0-9]+)', r'\1 to the power of \2', processed_text)
-        
-        # Handle subscripts with _ notation (x_1, H_2O, etc.)
-        processed_text = re.sub(r'([a-zA-Z0-9]+)_([a-zA-Z0-9]+)', r'\1 subscript \2', processed_text)
-        
-        # Handle parentheses for grouping
-        processed_text = processed_text.replace('(', ' open parenthesis ')
-        processed_text = processed_text.replace(')', ' close parenthesis ')
-        processed_text = processed_text.replace('[', ' open bracket ')
-        processed_text = processed_text.replace(']', ' close bracket ')
-        processed_text = processed_text.replace('{', ' open brace ')
-        processed_text = processed_text.replace('}', ' close brace ')
-        
-        # Handle scientific notation (1.23e+5, 4.56E-3)
-        processed_text = re.sub(r'([0-9.]+)[eE]([+-]?[0-9]+)', r'\1 times 10 to the power of \2', processed_text)
-        
-        # SMART HYPHEN HANDLING: Only convert hyphens to "minus" in mathematical contexts
-        # Convert mathematical minus (standalone or between numbers/variables)
-        processed_text = re.sub(r'\b(\d+)\s*-\s*(\d+)\b', r'\1 minus \2', processed_text)  # "5 - 3"
-        processed_text = re.sub(r'\b([a-zA-Z])\s*-\s*([a-zA-Z0-9])\b', r'\1 minus \2', processed_text)  # "x - y"
-        processed_text = re.sub(r'\s-\s', ' minus ', processed_text)  # " - " with spaces
-        
-        # Replace other mathematical symbols (excluding hyphen from SYMBOL_MAP)
-        symbol_map_no_hyphen = {k: v for k, v in cls.SYMBOL_MAP.items() if k != '-'}
-        for symbol, spoken in symbol_map_no_hyphen.items():
-            processed_text = processed_text.replace(symbol, spoken)
-        
-        # Clean up extra spaces
-        processed_text = re.sub(r'\s+', ' ', processed_text.strip())
-        
-        return processed_text
-    
-    @classmethod
-    def process_latex_expressions(cls, text: str) -> str:
-        """
-        Handle basic LaTeX expressions
-        
-        Args:
-            text: Text that may contain LaTeX expressions
-            
-        Returns:
-            Text with LaTeX converted to spoken form
-        """
-        processed_text = text
-        
-        # Handle \frac{a}{b} -> "a over b"
-        processed_text = re.sub(r'\\frac\{([^}]+)\}\{([^}]+)\}', r'\1 over \2', processed_text)
-        
-        # Handle \sqrt{x} -> "square root of x"
-        processed_text = re.sub(r'\\sqrt\{([^}]+)\}', r'square root of \1', processed_text)
-        
-        # Handle \sqrt[n]{x} -> "nth root of x"
-        processed_text = re.sub(r'\\sqrt\[([^]]+)\]\{([^}]+)\}', r'\1th root of \2', processed_text)
-        
-        # Handle x^{y} -> "x to the power of y"
-        processed_text = re.sub(r'([a-zA-Z0-9]+)\^\{([^}]+)\}', r'\1 to the power of \2', processed_text)
-        
-        # Handle x_{y} -> "x subscript y"
-        processed_text = re.sub(r'([a-zA-Z0-9]+)_\{([^}]+)\}', r'\1 subscript \2', processed_text)
-        
-        # Handle \sum_{i=1}^{n} -> "sum from i equals 1 to n"
-        processed_text = re.sub(r'\\sum_\{([^}]+)\}\^\{([^}]+)\}', r'sum from \1 to \2', processed_text)
-        
-        # Handle \int_{a}^{b} -> "integral from a to b"
-        processed_text = re.sub(r'\\int_\{([^}]+)\}\^\{([^}]+)\}', r'integral from \1 to \2', processed_text)
-        
-        # Handle \lim_{x \to a} -> "limit as x approaches a"
-        processed_text = re.sub(r'\\lim_\{([^}]+)\\to\s*([^}]+)\}', r'limit as \1 approaches \2', processed_text)
-        
-        # Remove remaining LaTeX commands
-        processed_text = re.sub(r'\\[a-zA-Z]+', '', processed_text)
-        
-        # Clean up
-        processed_text = re.sub(r'\s+', ' ', processed_text.strip())
-        
-        return processed_text
-
-
 class ConnectionManager:
     """Manages WebSocket connections and session state"""
     
@@ -715,3 +456,263 @@ class TTSEngine:
         self.ready = False
         self.pipeline = None
         logger.info("TTS Engine cleaned up")
+
+
+
+class MathNotationProcessor:
+    """Handles mathematical notation conversion to spoken text"""
+    
+    # Mathematical symbols mapping
+    SYMBOL_MAP = {
+        # Basic operators
+        '+': ' plus ',
+        '-': ' minus ',
+        '×': ' times ',
+        '∗': ' times ',
+        '*': ' times ',
+        '÷': ' divided by ',
+        '/': ' divided by ',
+        '=': ' equals ',
+        '≠': ' not equal to ',
+        '≈': ' approximately equals ',
+        '≡': ' identical to ',
+        
+        # Comparison operators
+        '<': ' less than ',
+        '>': ' greater than ',
+        '≤': ' less than or equal to ',
+        '≥': ' greater than or equal to ',
+        '<<': ' much less than ',
+        '>>': ' much greater than ',
+        
+        # Powers and roots
+        '²': ' squared',
+        '³': ' cubed',
+        '⁴': ' to the fourth power',
+        '⁵': ' to the fifth power',
+        '⁶': ' to the sixth power',
+        '⁷': ' to the seventh power',
+        '⁸': ' to the eighth power',
+        '⁹': ' to the ninth power',
+        '√': ' square root of ',
+        '∛': ' cube root of ',
+        '∜': ' fourth root of ',
+        
+        # Greek letters
+        'α': ' alpha ',
+        'β': ' beta ',
+        'γ': ' gamma ',
+        'δ': ' delta ',
+        'ε': ' epsilon ',
+        'ζ': ' zeta ',
+        'η': ' eta ',
+        'θ': ' theta ',
+        'ι': ' iota ',
+        'κ': ' kappa ',
+        'λ': ' lambda ',
+        'μ': ' mu ',
+        'ν': ' nu ',
+        'ξ': ' xi ',
+        'ο': ' omicron ',
+        'π': ' pi ',
+        'ρ': ' rho ',
+        'σ': ' sigma ',
+        'τ': ' tau ',
+        'υ': ' upsilon ',
+        'φ': ' phi ',
+        'χ': ' chi ',
+        'ψ': ' psi ',
+        'ω': ' omega ',
+        
+        # Capital Greek letters
+        'Α': ' capital alpha ',
+        'Β': ' capital beta ',
+        'Γ': ' capital gamma ',
+        'Δ': ' capital delta ',
+        'Ε': ' capital epsilon ',
+        'Ζ': ' capital zeta ',
+        'Η': ' capital eta ',
+        'Θ': ' capital theta ',
+        'Ι': ' capital iota ',
+        'Κ': ' capital kappa ',
+        'Λ': ' capital lambda ',
+        'Μ': ' capital mu ',
+        'Ν': ' capital nu ',
+        'Ξ': ' capital xi ',
+        'Ο': ' capital omicron ',
+        'Π': ' capital pi ',
+        'Ρ': ' capital rho ',
+        'Σ': ' capital sigma ',
+        'Τ': ' capital tau ',
+        'Υ': ' capital upsilon ',
+        'Φ': ' capital phi ',
+        'Χ': ' capital chi ',
+        'Ψ': ' capital psi ',
+        'Ω': ' capital omega ',
+        
+        # Special constants
+        '∞': ' infinity ',
+        'ℯ': ' e ',
+        'ℎ': ' h ',
+        'ℏ': ' h bar ',
+        'ℵ': ' aleph ',
+        
+        # Set theory and logic
+        '∈': ' is in ',
+        '∉': ' is not in ',
+        '⊂': ' is a subset of ',
+        '⊃': ' is a superset of ',
+        '⊆': ' is a subset of or equal to ',
+        '⊇': ' is a superset of or equal to ',
+        '∪': ' union ',
+        '∩': ' intersection ',
+        '∅': ' empty set ',
+        '∀': ' for all ',
+        '∃': ' there exists ',
+        '∄': ' there does not exist ',
+        '¬': ' not ',
+        '∧': ' and ',
+        '∨': ' or ',
+        '⊕': ' exclusive or ',
+        '→': ' implies ',
+        '↔': ' if and only if ',
+        
+        # Calculus and analysis
+        '∫': ' integral ',
+        '∬': ' double integral ',
+        '∭': ' triple integral ',
+        '∮': ' contour integral ',
+        '∂': ' partial derivative ',
+        '∇': ' nabla ',
+        '∆': ' delta ',
+        '∑': ' sum ',
+        '∏': ' product ',
+        '∐': ' coproduct ',
+        'lim': ' limit ',
+        
+        # Arrows
+        '←': ' left arrow ',
+        '→': ' right arrow ',
+        '↑': ' up arrow ',
+        '↓': ' down arrow ',
+        '↔': ' left right arrow ',
+        '↕': ' up down arrow ',
+        '⇐': ' left double arrow ',
+        '⇒': ' right double arrow ',
+        '⇑': ' up double arrow ',
+        '⇓': ' down double arrow ',
+        '⇔': ' left right double arrow ',
+        
+        # Miscellaneous
+        '°': ' degrees ',
+        '′': ' prime ',
+        '″': ' double prime ',
+        '‴': ' triple prime ',
+        '∝': ' proportional to ',
+        '∟': ' right angle ',
+        '∠': ' angle ',
+        '∥': ' parallel to ',
+        '⊥': ' perpendicular to ',
+        '±': ' plus or minus ',
+        '∓': ' minus or plus ',
+        '∴': ' therefore ',
+        '∵': ' because ',
+        '∷': ' as ',
+        '∶': ' ratio ',
+        '%': ' percent ',
+        '‰': ' permille ',
+    }
+    
+    @classmethod
+    def process_mathematical_text(cls, text: str) -> str:
+        """
+        Convert mathematical notation to spoken text
+        
+        Args:
+            text: Input text with mathematical symbols
+            
+        Returns:
+            Text with mathematical symbols converted to spoken form
+        """
+        processed_text = text
+        
+        # Handle fractions (basic pattern: number/number)
+        processed_text = re.sub(r'(\d+)/(\d+)', r'\1 over \2', processed_text)
+        
+        # Handle superscripts with ^ notation (x^2, x^n, etc.)
+        processed_text = re.sub(r'([a-zA-Z0-9]+)\^([a-zA-Z0-9]+)', r'\1 to the power of \2', processed_text)
+        
+        # Handle subscripts with _ notation (x_1, H_2O, etc.)
+        processed_text = re.sub(r'([a-zA-Z0-9]+)_([a-zA-Z0-9]+)', r'\1 subscript \2', processed_text)
+        
+        # Handle parentheses for grouping
+        processed_text = processed_text.replace('(', ' open parenthesis ')
+        processed_text = processed_text.replace(')', ' close parenthesis ')
+        processed_text = processed_text.replace('[', ' open bracket ')
+        processed_text = processed_text.replace(']', ' close bracket ')
+        processed_text = processed_text.replace('{', ' open brace ')
+        processed_text = processed_text.replace('}', ' close brace ')
+        
+        # Handle scientific notation (1.23e+5, 4.56E-3)
+        processed_text = re.sub(r'([0-9.]+)[eE]([+-]?[0-9]+)', r'\1 times 10 to the power of \2', processed_text)
+        
+        # SMART HYPHEN HANDLING: Only convert hyphens to "minus" in mathematical contexts
+        # Convert mathematical minus (standalone or between numbers/variables)
+        processed_text = re.sub(r'\b(\d+)\s*-\s*(\d+)\b', r'\1 minus \2', processed_text)  # "5 - 3"
+        processed_text = re.sub(r'\b([a-zA-Z])\s*-\s*([a-zA-Z0-9])\b', r'\1 minus \2', processed_text)  # "x - y"
+        processed_text = re.sub(r'\s-\s', ' minus ', processed_text)  # " - " with spaces
+        
+        # Replace other mathematical symbols (excluding hyphen from SYMBOL_MAP)
+        symbol_map_no_hyphen = {k: v for k, v in cls.SYMBOL_MAP.items() if k != '-'}
+        for symbol, spoken in symbol_map_no_hyphen.items():
+            processed_text = processed_text.replace(symbol, spoken)
+        
+        # Clean up extra spaces
+        processed_text = re.sub(r'\s+', ' ', processed_text.strip())
+        
+        return processed_text
+    
+    @classmethod
+    def process_latex_expressions(cls, text: str) -> str:
+        """
+        Handle basic LaTeX expressions
+        
+        Args:
+            text: Text that may contain LaTeX expressions
+            
+        Returns:
+            Text with LaTeX converted to spoken form
+        """
+        processed_text = text
+        
+        # Handle \frac{a}{b} -> "a over b"
+        processed_text = re.sub(r'\\frac\{([^}]+)\}\{([^}]+)\}', r'\1 over \2', processed_text)
+        
+        # Handle \sqrt{x} -> "square root of x"
+        processed_text = re.sub(r'\\sqrt\{([^}]+)\}', r'square root of \1', processed_text)
+        
+        # Handle \sqrt[n]{x} -> "nth root of x"
+        processed_text = re.sub(r'\\sqrt\[([^]]+)\]\{([^}]+)\}', r'\1th root of \2', processed_text)
+        
+        # Handle x^{y} -> "x to the power of y"
+        processed_text = re.sub(r'([a-zA-Z0-9]+)\^\{([^}]+)\}', r'\1 to the power of \2', processed_text)
+        
+        # Handle x_{y} -> "x subscript y"
+        processed_text = re.sub(r'([a-zA-Z0-9]+)_\{([^}]+)\}', r'\1 subscript \2', processed_text)
+        
+        # Handle \sum_{i=1}^{n} -> "sum from i equals 1 to n"
+        processed_text = re.sub(r'\\sum_\{([^}]+)\}\^\{([^}]+)\}', r'sum from \1 to \2', processed_text)
+        
+        # Handle \int_{a}^{b} -> "integral from a to b"
+        processed_text = re.sub(r'\\int_\{([^}]+)\}\^\{([^}]+)\}', r'integral from \1 to \2', processed_text)
+        
+        # Handle \lim_{x \to a} -> "limit as x approaches a"
+        processed_text = re.sub(r'\\lim_\{([^}]+)\\to\s*([^}]+)\}', r'limit as \1 approaches \2', processed_text)
+        
+        # Remove remaining LaTeX commands
+        processed_text = re.sub(r'\\[a-zA-Z]+', '', processed_text)
+        
+        # Clean up
+        processed_text = re.sub(r'\s+', ' ', processed_text.strip())
+        
+        return processed_text
