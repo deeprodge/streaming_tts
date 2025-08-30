@@ -2,13 +2,6 @@
 
 A low-latency streaming Text-to-Speech service with real-time caption highlighting.
 
-## Features
-
-- **Real-time TTS**: Low-latency text-to-speech conversion using kokoro library
-- **Live Captioning**: Word-level caption highlighting synchronized with audio
-- **Multiple Modes**: Live Typing mode and Standard TTS mode
-- **Mathematical Notation**: Support for mathematical expressions and symbols
-- **Streaming Architecture**: Progressive audio generation for faster response
 
 ## Quick Start
 
@@ -25,33 +18,71 @@ A low-latency streaming Text-to-Speech service with real-time caption highlighti
    pip install -r requirements.txt
    ```
 
-2. **Run the Server**:
+3. **Run the Server**:
    ```bash
    python main.py
    ```
 
-3. **Open Browser**:
+4. **Open Browser**:
    Navigate to `http://localhost:8000`
 
-## Project Structure
+## Project Overview
 
-```
-streaming_tts/
-├── main.py              # FastAPI application with WebSocket endpoint
-├── tts_engine.py        # TTS engine with kokoro library integration
-├── requirements.txt     # Python dependencies
-└── static/
-    ├── index.html       # Main UI interface
-    ├── script.js        # Frontend WebSocket client and audio handling
-    └── style.css        # UI styling with flat design
-```
+This application provides real-time text-to-speech conversion with synchronized caption highlighting. It features two distinct modes for different use cases:
 
-## Usage
+1. **Live Typing Mode**: Real-time TTS as you type, triggered on sentence boundaries
+2. **Standard TTS Mode**: Convert complete text passages with streaming audio
 
-- **Live Typing Mode**: Type text and get TTS on sentence boundaries (., !, ?)
-- **Standard TTS Mode**: Convert complete text input with streaming
-- **Mathematical Support**: Type mathematical expressions using symbols or LaTeX
-- **Examples**: Use built-in quick examples for testing
+![Streaming TTS UI](screenshot.png)
+
+## Key Features
+
+- **Real-time TTS**: Low-latency text-to-speech using kokoro library
+- **Live Captioning**: Word-level caption highlighting synchronized with audio *(Currently buggy - see Known Issues)*
+- **Multiple Modes**: Live Typing and Standard TTS modes
+- **Mathematical Notation**: Support for mathematical expressions and symbols
+- **Streaming Architecture**: Progressive audio generation for faster response
+- **CD-Quality Audio**: 44.1 kHz, 16-bit, mono PCM output format
+
+## Usage Modes
+
+### Live Typing Mode
+Type text and get TTS on sentence boundaries (., !, ?). Ideal for interactive applications.
+
+**Controls:**
+- **Enable Live Typing**: Toggle Live Typing mode
+- **Flush Now**: Manually trigger TTS for pending text
+
+### Standard TTS Mode
+Convert complete text input into speech with streaming capabilities.
+
+**Controls:**
+- **Convert to Speech**: Trigger TTS for all text in input area
+- **Stop All & Clear**: Stop audio playback and clear content
+
+## UI Components
+
+### Text Input Area
+Main text entry area for content to be converted to speech.
+
+### Settings
+- **Max words per chunk**: Adjust chunking size (5-50 words)
+- **Volume Slider**: Adjust playback volume (0-100%)
+- **Queue Display**: Number of audio chunks waiting to play
+- **Latency Display**: Current latency measurement in milliseconds
+
+### Quick Examples
+Predefined text examples organized by category:
+- Mathematical Notation
+- Greek Letters & Symbols
+- Scientific & Physics
+- Normal English
+
+### Session Statistics
+- **Characters**: Total characters processed
+- **Audio Chunks**: Number of audio chunks generated
+- **Avg Latency**: Average latency across operations
+- **Session Time**: Duration of current session
 
 ## Technology Stack
 
@@ -59,3 +90,8 @@ streaming_tts/
 - **TTS Engine**: kokoro library with phoneme-level timing
 - **Frontend**: Vanilla JavaScript, Web Audio API
 - **Audio**: Real-time PCM streaming with word-level highlighting
+
+
+## ⚠️ Known Issues
+
+**Live Caption Highlighting**: The word-level highlighting feature is currently experiencing synchronization issues and may not work reliably in all scenarios. We're actively working on resolving these issues.
