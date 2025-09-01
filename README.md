@@ -94,4 +94,4 @@ Predefined text examples organized by category:
 
 ## ⚠️ Known Issues
 
-**Live Caption Highlighting**: The word-level highlighting feature is currently experiencing synchronization issues and may not work reliably in all scenarios. We're actively working on resolving these issues.
+**Live Caption Highlighting**: The word-level highlighting feature is currently experiencing synchronization issues and may not work reliably in all scenarios. I'm actively working on resolving these issue.
