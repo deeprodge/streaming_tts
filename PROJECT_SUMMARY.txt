@@ -1,0 +1,627 @@
+STREAMING TTS PROJECT - COMPREHENSIVE SUMMARY
+================================================
+
+Generated on: September 2, 2025
+Project Owner: deeprodge
+Repository: streaming_tts
+
+TABLE OF CONTENTS
+=================
+1. Project Overview
+2. Technical Architecture
+3. File Structure and Analysis
+4. Key Technologies and Libraries
+5. Data Flow and Communication
+6. Function-by-Function Analysis
+7. Implementation Details
+8. Audio Processing Pipeline
+9. Mathematical Notation Processing
+10. WebSocket Communication Protocol
+11. Frontend Integration
+12. Complete Project Flow - Function Call Sequence
+13. Development Notes and Insights
+
+1. PROJECT OVERVIEW
+===================
+
+This is a real-time streaming Text-to-Speech (TTS) system that provides:
+- Live text input through WebSocket connections
+- Real-time audio generation using Kokoro TTS library
+- Synchronized word highlighting during speech playback
+- Mathematical notation processing and conversion
+- High-quality audio streaming (44.1 kHz, 16-bit, mono PCM)
+
+Core Features:
+- Real-time bidirectional communication via WebSockets
+- Character and word-level alignment for precise highlighting
+- Sentence-based audio chunk generation
+- Mathematical symbols and LaTeX expression processing
+- Session management for multiple concurrent users
+- Fallback mock system for development
+
+2. TECHNICAL ARCHITECTURE
+=========================
+
+Backend Framework: FastAPI with WebSocket support
+TTS Engine: Kokoro library (24 kHz native, resampled to 44.1 kHz)
+Frontend: Vanilla JavaScript with Web Audio API
+Communication: WebSocket protocol for real-time streaming
+Audio Format: Base64-encoded PCM (44.1 kHz, 16-bit, mono)
+
+Key Components:
+- FastAPI server (main.py) - WebSocket endpoint management
+- TTS Engine (tts_engine.py) - Audio generation and alignment
+- Frontend Client (script.js) - Audio playback and UI management
+- Static files (HTML/CSS) - User interface
+
+3. FILE STRUCTURE AND ANALYSIS
+==============================
+
+streaming_tts/
+├── main.py                 # FastAPI server and WebSocket endpoint
+├── tts_engine.py           # Core TTS processing and alignment
+├── requirements.txt        # Python dependencies
+├── README.md              # Project documentation
+├── screenshot.png         # Project screenshot
+└── static/
+    ├── index.html         # Main web interface
+    ├── script.js          # Frontend WebSocket client
+    └── style.css          # User interface styling
+
+File Sizes and Complexity:
+- main.py: 346 lines - Server logic and WebSocket handling
+- tts_engine.py: 719 lines - TTS engine and audio processing
+- script.js: 1827 lines - Frontend client and audio management
+- Total codebase: ~2900 lines
+
+4. KEY TECHNOLOGIES AND LIBRARIES
+=================================
+
+Backend Dependencies:
+- fastapi: Modern async web framework
+- uvicorn: ASGI server for FastAPI
+- websockets: WebSocket protocol support
+- kokoro: TTS library for audio generation
+- numpy: Numerical computing for audio processing
+- scipy: Signal processing (resampling)
+- torch/torchaudio: PyTorch for ML operations
+- soundfile: Audio file handling
+
+Frontend Technologies:
+- Web Audio API: Browser-based audio processing
+- WebSocket API: Real-time communication
+- Vanilla JavaScript: No external frameworks
+- HTML5/CSS3: Modern web standards
+
+Audio Processing:
+- Sample Rate Conversion: 24 kHz → 44.1 kHz
+- Format: PCM 16-bit mono
+- Encoding: Base64 for transmission
+- Streaming: Chunk-based real-time delivery
+
+5. DATA FLOW AND COMMUNICATION
+==============================
+
+Text Input Flow:
+1. User types in web interface
+2. JavaScript captures input and sends via WebSocket
+3. FastAPI receives and buffers text chunks
+4. Sentence detection triggers TTS generation
+5. Audio chunks stream back to client
+
+Audio Processing Pipeline:
+1. Text preprocessing (cleaning, math notation)
+2. Kokoro TTS generation (24 kHz native)
+3. Phoneme timing extraction
+4. Character/word alignment calculation
+5. Audio resampling (24 kHz → 44.1 kHz)
+6. Base64 encoding for transmission
+7. WebSocket streaming to client
+
+Client-Side Playback:
+1. Receive audio chunks via WebSocket
+2. Queue management for smooth playback
+3. Audio decoding and Web Audio processing
+4. Synchronized word highlighting
+5. Real-time caption display
+
+6. FUNCTION-BY-FUNCTION ANALYSIS
+===============================
+
+MAIN.PY FUNCTIONS:
+------------------
+
+lifespan(app):
+- Purpose: Application lifecycle management
+- Initializes TTS engine on startup
+- Cleans up resources on shutdown
+- Handles graceful application termination
+
+websocket_endpoint(websocket, session_id):
+- Purpose: Main WebSocket communication handler
+- Manages client connections and disconnections
+- Processes incoming text chunks
+- Triggers sentence-based TTS generation
+- Streams audio responses back to client
+
+detect_sentence_end(text):
+- Purpose: Identifies complete sentences for TTS processing
+- Uses regex pattern: r'[.!?]+\s*$'
+- Enables real-time streaming without waiting for full input
+- Returns boolean indicating sentence completion
+
+TTS_ENGINE.PY CLASSES AND FUNCTIONS:
+------------------------------------
+
+ConnectionManager Class:
+- connect(websocket, session_id): Register new connections
+- disconnect(session_id): Clean up connections
+- initialize_session(session_id): Reset session state
+- add_text_chunk(session_id, text): Buffer incoming text
+- get_text_buffer(session_id): Retrieve current buffer
+- clear_text_buffer(session_id): Reset text buffer
+
+TTSEngine Class:
+- initialize(): Load Kokoro TTS pipeline
+- generate_audio_with_alignment(text): Main TTS processing
+- _clean_text(text): Preprocess input text
+- _generate_audio_with_phoneme_timings(text): Core audio generation
+- _generate_word_alignment(text, timings): Word-level timing
+- _generate_character_alignment(text, timings): Character-level timing
+- _audio_to_base64(audio_data): Convert audio for transmission
+
+MathNotationProcessor Class:
+- process_mathematical_text(text): Convert math symbols to speech
+- process_latex_expressions(text): Handle LaTeX notation
+- SYMBOL_MAP: Comprehensive mathematical symbol dictionary
+
+SCRIPT.JS CLASSES AND FUNCTIONS:
+--------------------------------
+
+TTSWebSocketClient Class:
+- connect(): Establish WebSocket connection
+- sendText(text): Send text for TTS processing
+- _handleAudioChunk(data): Process incoming audio
+- _queueAudio(audioData, alignment): Queue audio for playback
+- _processAudioQueue(): Manage playback queue
+- _playAudioChunk(chunk): Play individual audio segments
+- _updateHighlighting(wordAlignment): Sync word highlighting
+
+7. IMPLEMENTATION DETAILS
+=========================
+
+WebSocket Message Protocol:
+- Client → Server: {"type": "text", "data": "input text"}
+- Server → Client: {"type": "audio", "data": {...}, "alignment": {...}}
+- Connection management with unique session IDs
+- Graceful error handling and reconnection logic
+
+Audio Alignment System:
+- Phoneme-level timing from Kokoro TTS
+- Character-level alignment for precise highlighting
+- Word-level alignment for natural speech rhythm
+- Timing data in milliseconds for synchronization
+
+Session Management:
+- Multiple concurrent WebSocket connections
+- Per-session text buffering and state tracking
+- Automatic cleanup on disconnection
+- Session initialization for new streams
+
+8. AUDIO PROCESSING PIPELINE
+============================
+
+Step 1: Text Preprocessing
+- Mathematical notation conversion
+- LaTeX expression handling
+- Whitespace normalization
+- Special character processing
+
+Step 2: TTS Generation (Kokoro)
+- Phoneme extraction and timing
+- Audio synthesis at 24 kHz
+- Chunk-based processing for streaming
+- Voice and speed parameter control
+
+Step 3: Audio Post-Processing
+- Sample rate conversion (24 kHz → 44.1 kHz)
+- 16-bit PCM conversion
+- Base64 encoding for transmission
+- Quality preservation during resampling
+
+Step 4: Alignment Generation
+- Character-level timing calculation
+- Word boundary detection with regex: r'\S+'
+- Proportional duration distribution
+- Synchronization data for frontend
+
+9. MATHEMATICAL NOTATION PROCESSING
+==================================
+
+Symbol Categories Supported:
+- Basic operators: +, -, ×, ÷, =, ≠, ≈
+- Comparison: <, >, ≤, ≥, <<, >>
+- Powers and roots: ², ³, √, ∛
+- Greek letters: α, β, γ, δ, π, ω, etc.
+- Set theory: ∈, ∉, ⊂, ⊃, ∪, ∩, ∅
+- Calculus: ∫, ∂, ∇, ∑, ∏, lim
+- Logic: ∀, ∃, ¬, ∧, ∨, →, ↔
+
+LaTeX Expression Handling:
+- \frac{a}{b} → "a over b"
+- \sqrt{x} → "square root of x"
+- x^{y} → "x to the power of y"
+- \sum_{i=1}^{n} → "sum from i equals 1 to n"
+- \int_{a}^{b} → "integral from a to b"
+
+Smart Processing Features:
+- Context-aware hyphen handling
+- Scientific notation conversion
+- Fraction notation support
+- Superscript/subscript handling
+
+10. WEBSOCKET COMMUNICATION PROTOCOL
+====================================
+
+Connection Lifecycle:
+1. Client initiates WebSocket connection
+2. Server registers session with unique ID
+3. Bidirectional message exchange
+4. Graceful disconnection and cleanup
+
+Message Types:
+- "text": Client sends input text chunks
+- "audio": Server responds with audio and alignment
+- "initialize": Session reset for new streams
+- Error messages for exception handling
+
+Data Structures:
+Audio Response Format:
+{
+  "audio": "base64_encoded_pcm_data",
+  "original_text": "user_input",
+  "processed_text": "cleaned_input",
+  "alignment": {
+    "chars": ["h", "e", "l", "l", "o"],
+    "char_start_times_ms": [0, 100, 200, 300, 400],
+    "char_durations_ms": [100, 100, 100, 100, 100]
+  },
+  "word_alignment": {
+    "words": ["hello", "world"],
+    "word_start_times_ms": [0, 500],
+    "word_durations_ms": [400, 500]
+  }
+}
+
+11. FRONTEND INTEGRATION
+========================
+
+Web Audio API Usage:
+- AudioContext for audio processing
+- AudioBuffer for decoded PCM data
+- AudioBufferSourceNode for playback
+- Queue management for seamless streaming
+
+Highlighting System:
+- Word-level synchronization with audio
+- Character-level precision available
+- Visual feedback during speech
+- Smooth transitions between words
+
+User Interface Components:
+- Text input area with real-time processing
+- Audio control buttons (play/pause/stop)
+- Visual highlighting overlay
+- Connection status indicators
+
+12. COMPLETE PROJECT FLOW - FUNCTION CALL SEQUENCE
+==================================================
+
+This section traces the complete project execution from server startup to website closure,
+showing exactly which functions are called and in what sequence.
+
+🚀 PHASE 1: SERVER STARTUP
+==========================
+
+Server Initialization Command:
+```bash
+python main.py
+# or
+uvicorn main:app --reload
+```
+
+Function Call Sequence:
+1. main.py → lifespan(app) - Application startup manager
+2. tts_engine.py → TTSEngine.__init__() - Initialize TTS engine instance
+3. tts_engine.py → TTSEngine.initialize() - Load Kokoro pipeline
+4. tts_engine.py → ConnectionManager.__init__() - Initialize connection manager
+5. FastAPI → Server starts listening on port 8000
+
+What Happens:
+- Creates global tts_engine and connection_manager instances
+- Loads Kokoro TTS pipeline (or mock for development)
+- Server becomes ready to accept WebSocket connections
+- Static files (HTML/CSS/JS) become available at /
+
+🌐 PHASE 2: WEBSITE OPENING
+===========================
+
+User Opens Website:
+URL: http://localhost:8000
+
+Function Call Sequence:
+1. Browser → Requests index.html from FastAPI static files
+2. Browser → Loads style.css and script.js
+3. script.js → TTSWebSocketClient constructor called
+4. script.js → initializeElements() - Find DOM elements
+5. script.js → initializeEventListeners() - Attach event handlers
+6. script.js → initializeWebSocket() - Create WebSocket connection
+7. script.js → initializeAudio() - Initialize Web Audio Context
+8. script.js → startStatsUpdater() - Begin UI updates
+
+What Happens:
+- Frontend JavaScript loads and initializes
+- WebSocket connection attempt begins
+- Audio context created for playback
+- UI elements become interactive
+
+🔌 PHASE 3: WEBSOCKET CONNECTION
+===============================
+
+WebSocket Connection Establishment:
+
+Frontend Side:
+1. script.js → new WebSocket(wsUrl) - Create connection
+2. script.js → handleWebSocketOpen() - Connection success handler
+
+Backend Side:
+3. main.py → websocket_endpoint(websocket, session_id) - Accept connection
+4. tts_engine.py → ConnectionManager.connect(websocket, session_id) - Register session
+5. Backend → Session data initialized with empty buffers
+
+What Happens:
+- Unique session ID generated
+- Connection registered in active_connections
+- Session state initialized: text_buffer="", full_text="", is_active=True
+- Frontend shows "Connected" status
+
+✍️ PHASE 4: TEXT INPUT STREAMING
+===============================
+
+User Types Text - Every Keystroke Triggers:
+
+Frontend Side:
+1. script.js → onTextInput() event handler
+2. script.js → Input debouncing logic (300ms timeout)
+3. script.js → sendText(character) - Send single character
+4. script.js → ws.send(JSON.stringify({text: char})) - WebSocket transmission
+
+Backend Side:
+5. main.py → websocket_endpoint() receives message
+6. main.py → json.loads(data) - Parse incoming JSON
+7. tts_engine.py → ConnectionManager.add_text_chunk(session_id, text) - Buffer text
+8. main.py → should_process_text(session_id) - Check for sentence completion
+9. main.py → has_true_sentence_ending(text) - Validate sentence endings
+
+What Happens:
+- Each character is immediately sent to server
+- Server accumulates characters in session buffer
+- Sentence detection runs on accumulated text
+- No TTS generation until sentence completion detected
+
+🎵 PHASE 5: TTS GENERATION (Sentence Completion)
+===============================================
+
+When sentence ending detected (. ! ?):
+
+Backend Processing Chain:
+1. main.py → process_text_buffer(session_id, websocket) - Main TTS coordinator
+2. tts_engine.py → TTSEngine.generate_audio_with_alignment(text) - Core TTS function
+
+Text Processing:
+3. tts_engine.py → _clean_text(text) - Text preprocessing
+4. tts_engine.py → MathNotationProcessor.process_mathematical_text(text) - Math symbols
+5. tts_engine.py → MathNotationProcessor.process_latex_expressions(text) - LaTeX handling
+
+Audio Generation:
+6. tts_engine.py → _generate_audio_with_phoneme_timings(text) - Kokoro TTS generation
+7. Kokoro Pipeline → Generates audio chunks with phoneme timings
+8. tts_engine.py → Audio resampling: 24kHz → 44.1kHz using signal.resample()
+
+Alignment Generation:
+9. tts_engine.py → _generate_word_alignment(text, phoneme_timings) - Word timing
+10. tts_engine.py → _generate_character_alignment(text, phoneme_timings) - Character timing
+11. tts_engine.py → _audio_to_base64(audio_data) - Convert to Base64
+
+Response Formatting:
+12. main.py → Format JSON response with audio and alignment data
+13. main.py → websocket.send_text(json.dumps(result)) - Stream to frontend
+
+What Happens:
+- Complete sentence processed through TTS pipeline
+- High-quality audio generated with timing data
+- Word and character alignments calculated
+- Audio encoded as Base64 PCM data
+- Response streamed back to client
+
+🔊 PHASE 6: AUDIO STREAMING TO FRONTEND
+======================================
+
+Frontend Receives Audio:
+
+Audio Reception and Processing:
+1. script.js → handleWebSocketMessage(event) - Receive WebSocket message
+2. script.js → processAudioMessage(data) - Parse audio data
+3. script.js → processHighlightingData(data) - Extract timing information
+4. script.js → queueAudioForPlayback(audioData, data) - Queue for playback
+
+Audio Decoding:
+5. script.js → base64ToArrayBuffer(audioData) - Convert Base64 to binary
+6. script.js → audioContext.decodeAudioData(arrayBuffer) - Create AudioBuffer
+7. script.js → Audio queued in audioQueue[] array
+
+Playback Management:
+8. script.js → processAudioQueue() - Start playback if not already playing
+9. script.js → playNextAudioChunk() - Begin audio playback
+10. script.js → audioBufferSourceNode.start(0) - Web Audio API playback
+
+What Happens:
+- Audio data decoded from Base64 to PCM
+- Audio buffer created using Web Audio API
+- Queued for seamless playback
+- Highlighting data prepared for synchronization
+
+✨ PHASE 7: SYNCHRONIZED HIGHLIGHTING
+====================================
+
+Real-time Caption Highlighting During Audio Playback:
+
+1. script.js → updateCaptionsWithHighlighting(text, data) - Update caption display
+2. script.js → createWordElements(text) - Split text into highlightable spans
+3. script.js → startHighlighting(data) - Begin synchronized highlighting
+4. script.js → scheduleWordHighlights(alignment) - Schedule timing events
+
+Highlighting Timeline:
+5. script.js → setTimeout() calls for each word timing
+6. script.js → highlightWord(index) - Add highlight CSS class
+7. script.js → unhighlightWord(index) - Remove highlight after duration
+8. script.js → Process continues for each word in sequence
+
+Caption Updates:
+9. script.js → updateFullCaptions(fullText) - Show complete accumulated text
+10. script.js → Visual highlighting synchronized with audio playback
+
+What Happens:
+- Text split into individual word elements
+- Each word highlighted precisely when spoken
+- Smooth visual synchronization with audio
+- Accumulated text shown in caption area
+
+🔄 PHASE 8: CONTINUOUS STREAMING
+===============================
+
+Multiple Sentences (Continuous Flow):
+
+For Each Additional Sentence:
+- Repeats Phases 4-7 for each sentence completion
+- Buffer Management: Previous sentence cleared, new text accumulated
+- Continuous Playback: Audio chunks queue seamlessly
+- Persistent Highlighting: Each chunk gets synchronized highlighting
+- Session State: full_text accumulates, text_buffer processes chunks
+
+Concurrent Operations:
+- User continues typing → Text streaming continues
+- Audio playback → Previous sentences playing
+- Highlighting → Multiple sentences highlighted in sequence
+- TTS generation → New sentences being processed
+
+🛑 PHASE 9: WEBSITE CLOSURE
+===========================
+
+User Closes Website/Tab:
+
+Frontend Cleanup:
+1. Browser → beforeunload event triggered
+2. script.js → cleanup() function called
+3. script.js → stopAllAudio() - Halt audio playback
+4. script.js → clearHighlighting() - Remove highlighting timers
+5. script.js → ws.close() - Close WebSocket connection
+
+Backend Cleanup:
+6. main.py → websocket_endpoint() catches WebSocketDisconnect
+7. tts_engine.py → ConnectionManager.disconnect(session_id) - Remove session
+8. Backend → Session data cleared from memory
+9. Backend → Connection removed from active_connections
+
+Server Shutdown (if stopped):
+10. main.py → lifespan() shutdown phase
+11. tts_engine.py → ConnectionManager.cleanup_all_connections() - Clean all sessions
+12. tts_engine.py → TTSEngine.cleanup() - Release TTS resources
+
+What Happens:
+- Graceful cleanup of all resources
+- WebSocket connection properly closed
+- Audio playback stopped immediately
+- Memory freed on both frontend and backend
+- Session completely removed from server
+
+📊 SUMMARY OF KEY FUNCTION FLOWS
+===============================
+
+Text Processing Pipeline:
+```
+User Input → add_text_chunk → should_process_text → process_text_buffer → 
+generate_audio_with_alignment → _clean_text → _generate_audio_with_phoneme_timings → 
+_generate_word_alignment → _audio_to_base64 → WebSocket Response
+```
+
+Audio Playback Pipeline:
+```
+WebSocket Receive → processAudioMessage → queueAudioForPlayback → 
+base64ToArrayBuffer → audioContext.decodeAudioData → processAudioQueue → 
+playNextAudioChunk → Web Audio Playback
+```
+
+Highlighting Pipeline:
+```
+processHighlightingData → updateCaptionsWithHighlighting → createWordElements → 
+startHighlighting → scheduleWordHighlights → highlightWord → unhighlightWord
+```
+
+This complete flow demonstrates how the streaming TTS system orchestrates real-time 
+text processing, audio generation, and synchronized highlighting across WebSocket 
+communication between a FastAPI backend and JavaScript frontend.
+
+13. DEVELOPMENT NOTES AND INSIGHTS
+==================================
+
+Key Design Decisions:
+- Chose FastAPI for modern async support
+- WebSocket for real-time bidirectional communication
+- Kokoro TTS for high-quality speech synthesis
+- Base64 encoding for simple audio transmission
+- Sentence-based chunking for responsive streaming
+
+Performance Optimizations:
+- Single-pass audio generation to reduce latency
+- Efficient resampling with scipy.signal.resample
+- Queue-based audio playback for smooth delivery
+- Session management to handle multiple users
+
+Error Handling:
+- Mock TTS system for development fallback
+- Graceful WebSocket disconnection handling
+- Audio format validation and error recovery
+- Comprehensive logging for debugging
+
+Regex Patterns Used:
+- Sentence detection: r'[.!?]+\s*$'
+- Word splitting: r'\S+' (non-whitespace sequences)
+- Mathematical expressions: Various patterns for symbols
+- LaTeX processing: Complex patterns for expressions
+
+Audio Technical Specifications:
+- Input: Kokoro TTS at 24 kHz, 32-bit float
+- Processing: scipy.signal.resample for quality conversion
+- Output: 44.1 kHz, 16-bit mono PCM
+- Encoding: Base64 for WebSocket transmission
+- Playback: Web Audio API with real-time queue management
+
+Future Enhancement Opportunities:
+- Voice selection and customization
+- Speed/pitch control during playback
+- Advanced mathematical expression support
+- Multi-language TTS support
+- Audio effects and processing options
+- Improved error recovery and reconnection
+- Caching for frequently used phrases
+- Real-time text editing with live updates
+
+CONCLUSION
+==========
+
+This streaming TTS project demonstrates a sophisticated real-time speech synthesis system with precise word-level synchronization. The architecture effectively combines modern web technologies (FastAPI, WebSockets, Web Audio API) with advanced TTS capabilities (Kokoro library) to create a responsive, high-quality text-to-speech experience.
+
+The codebase is well-structured with clear separation of concerns: server-side TTS processing, real-time communication management, and client-side audio playback. The mathematical notation processing adds significant value for technical content, while the alignment system enables precise highlighting synchronization.
+
+Key strengths include the streaming architecture for real-time response, comprehensive error handling, and high-quality audio processing. The system is designed for scalability with session management and can handle multiple concurrent users effectively.
